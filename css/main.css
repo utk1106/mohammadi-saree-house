@@ -122,40 +122,15 @@ body.intro-active { overflow: hidden; height: 100vh; }
   to { opacity: 1; transform: rotateY(0deg) translateZ(0) scale(1); }
 }
 
-.intro__brand {
-  position: absolute;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  color: var(--color-linen);
-  font-family: var(--font-poppins);
-  font-weight: var(--font-weight-bold);
-  font-size: 7vw;
-  letter-spacing: 0.08em;
-  text-align: center;
-  opacity: 0;
-  transform: translateZ(-150px) scale(0.85);
-  animation: brandIn 0.8s cubic-bezier(.2,.8,.2,1) forwards;
-  animation-delay: 0.95s;
-}
-.intro__brand span:last-child { color: var(--color-brand-green-light); font-size: 0.5em; letter-spacing: 0.25em; }
-@media (min-width: 600px) { .intro__brand { font-size: 46px; } }
-
-@keyframes brandIn {
-  to { opacity: 1; transform: translateZ(0) scale(1); }
-}
-
-.intro--exit .intro__grid,
-.intro--exit .intro__brand {
+.intro--exit .intro__grid {
   transition: transform 0.7s cubic-bezier(.5,0,.75,0), opacity 0.6s ease;
   transform: translateZ(900px) scale(1.4);
   opacity: 0;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .intro__tile, .intro__brand { animation: none; opacity: 1; transform: none; }
-  .intro--exit .intro__grid, .intro--exit .intro__brand { transition: opacity 0.3s ease; transform: none; }
+  .intro__tile { animation: none; opacity: 1; transform: none; }
+  .intro--exit .intro__grid { transition: opacity 0.3s ease; transform: none; }
 }
 
 /* Nav — floating glass pill, overlays content instead of pushing it down */
