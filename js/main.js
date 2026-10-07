@@ -95,9 +95,32 @@ document.addEventListener('DOMContentLoaded', () => {
   sections.forEach((section) => observer.observe(section));
 });
 
+// Mobile hamburger menu — toggles the dropdown, closes on link click or outside tap
+document.addEventListener('DOMContentLoaded', () => {
+  const toggle = document.getElementById('navToggle');
+  const links = document.getElementById('navLinks');
+  if (!toggle || !links) return;
+
+  const closeMenu = () => {
+    links.classList.remove('is-open');
+    toggle.setAttribute('aria-expanded', 'false');
+  };
+
+  toggle.addEventListener('click', () => {
+    const isOpen = links.classList.toggle('is-open');
+    toggle.setAttribute('aria-expanded', String(isOpen));
+  });
+
+  links.querySelectorAll('a').forEach((a) => a.addEventListener('click', closeMenu));
+
+  document.addEventListener('click', (e) => {
+    if (!links.classList.contains('is-open')) return;
+    if (!links.contains(e.target) && !toggle.contains(e.target)) closeMenu();
+  });
+});
+
 // Nav grows wider with scroll — links reveal progressively, fully expanded by
-// EXPAND_DISTANCE px of scroll. Desktop only; mobile nav links stay hidden
-// (no menu built for them yet).
+// EXPAND_DISTANCE px of scroll. Desktop only (mobile uses the hamburger menu above).
 document.addEventListener('DOMContentLoaded', () => {
   const navLinks = document.querySelector('.nav__links');
   if (!navLinks) return;
