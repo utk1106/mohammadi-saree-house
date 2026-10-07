@@ -166,36 +166,3 @@ document.addEventListener('DOMContentLoaded', () => {
   window.addEventListener('resize', onResize);
   render();
 });
-
-// Product "Enquire" chips — on phones that support sharing files (Web Share API
-// Level 2), attach the actual product photo via the native share sheet. WhatsApp
-// itself has no link format that can pre-attach an image, only text, so this is
-// the real alternative: share the photo out to whichever app the user picks.
-// Everywhere else, the link falls back to the normal wa.me text-only chat.
-document.addEventListener('DOMContentLoaded', () => {
-  const supportsFileShare =
-    navigator.canShare &&
-    navigator.canShare({ files: [new File([], 'test.jpg', { type: 'image/jpeg' })] });
-  if (!supportsFileShare) return;
-
-  document.querySelectorAll('.product-card__chip').forEach((chip) => {
-    chip.addEventListener('click', (e) => {
-      const img = chip.closest('.product-card')?.querySelector('img');
-      if (!img) return;
-
-      e.preventDefault();
-      fetch(img.src)
-        .then((r) => r.blob())
-        .then((blob) => {
-          const file = new File([blob], 'mohammadi-saree.jpg', { type: blob.type || 'image/jpeg' });
-          return navigator.share({
-            files: [file],
-            text: "Hi, I'm interested in this piece from Mohammadi Saree House.",
-          });
-        })
-        .catch(() => {
-          window.open(chip.href, '_blank');
-        });
-    });
-  });
-});
