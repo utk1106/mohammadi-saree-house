@@ -73,11 +73,11 @@ img { display: block; max-width: 100%; }
 }
 .btn--filled:hover { background: rgba(86, 133, 100, 0.55); }
 .btn--ghost {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(44, 103, 61, 0.25);
   color: var(--color-linen);
-  border: 1px solid rgba(255, 255, 255, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.35);
 }
-.btn--ghost:hover { background: rgba(44, 103, 61, 0.55); border-color: rgba(255, 255, 255, 0.45); }
+.btn--ghost:hover { background: rgba(86, 133, 100, 0.55); border-color: rgba(255, 255, 255, 0.5); }
 
 /* Intro — 3D grid-reveal sequence, plays once per session before the site */
 body.intro-active { overflow: hidden; height: 100vh; }
@@ -240,7 +240,7 @@ body.intro-active { overflow: hidden; height: 100vh; }
 }
 .nav__whatsapp:hover { background: rgba(86, 133, 100, 0.55); }
 
-/* Desktop: toggle hidden, links go back to the inline scroll-expand pill */
+/* Desktop: toggle hidden, links sit inline in the pill */
 @media (min-width: 768px) {
   .nav__toggle { display: none; }
   .nav__links {
@@ -252,9 +252,6 @@ body.intro-active { overflow: hidden; height: 100vh; }
     background: none;
     border: none;
     border-radius: 0;
-    overflow: hidden;
-    max-width: 0;
-    opacity: 0;
     white-space: nowrap;
   }
   .nav__links a { padding: 8px 16px; text-align: left; }
@@ -262,13 +259,6 @@ body.intro-active { overflow: hidden; height: 100vh; }
 
 /* Anchor targets need top clearance so the floating nav doesn't cover them on jump */
 #collection, #about, #contact { scroll-margin-top: 100px; }
-
-@media (prefers-reduced-motion: no-preference) {
-  .nav__links { transition: max-width 0.1s linear, opacity 0.15s linear; }
-}
-@media (prefers-reduced-motion: reduce) {
-  .nav__links { max-width: none; opacity: 1; }
-}
 
 /* Hero */
 .hero {
@@ -294,6 +284,7 @@ body.intro-active { overflow: hidden; height: 100vh; }
   text-align: center;
   color: var(--color-linen);
   padding: 0 var(--spacing-20);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.65), 0 6px 20px rgba(0, 0, 0, 0.4);
 }
 .hero__overlay .eyebrow { color: var(--color-ash); }
 .hero__word {
@@ -336,7 +327,7 @@ body.intro-active { overflow: hidden; height: 100vh; }
   border: 1px solid var(--color-border-dark);
   border-radius: var(--radius-cards);
   overflow: hidden;
-  aspect-ratio: 9 / 16;
+  aspect-ratio: 3 / 4;
   transform-style: preserve-3d;
   transition: transform 0.15s ease-out, box-shadow 0.15s ease-out;
   will-change: transform;
@@ -347,6 +338,7 @@ body.intro-active { overflow: hidden; height: 100vh; }
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: top;
   transition: transform 0.4s ease;
   transform: translateZ(0);
 }
@@ -402,16 +394,49 @@ body.intro-active { overflow: hidden; height: 100vh; }
 .about__image img { width: 100%; height: 100%; object-fit: cover; object-position: top center; }
 .about__text p { margin-bottom: var(--spacing-23); color: var(--color-raw-silk); }
 
+/* Marquee — continuous scrolling brand-name band above the footer */
+.marquee {
+  position: relative;
+  overflow: hidden;
+  white-space: nowrap;
+  padding: var(--spacing-20) 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  -webkit-mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
+  mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
+}
+.marquee__track {
+  display: inline-flex;
+  align-items: center;
+  width: max-content;
+  animation: marquee-scroll 22s linear infinite;
+}
+.marquee__track span {
+  flex-shrink: 0;
+  padding: 0 var(--spacing-20);
+  font-family: var(--font-poppins);
+  font-weight: var(--font-weight-bold);
+  font-size: clamp(60px, 9vw, 150px);
+  line-height: 1;
+  letter-spacing: 0.01em;
+  color: transparent;
+  -webkit-text-stroke: 1.5px rgba(255, 255, 255, 0.28);
+}
+.marquee__track span:nth-child(odd) {
+  color: var(--color-brand-green);
+  -webkit-text-stroke: 1.5px var(--color-brand-green);
+  opacity: 0.5;
+}
+@keyframes marquee-scroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .marquee__track { animation: none; }
+}
+
 /* Footer — real imagery behind glass panels, consistent with the nav's glass language */
 .footer {
   position: relative;
-  background: var(--color-charcoal-ink) url('../assets/video/hero-poster.jpg') center/cover no-repeat;
-}
-.footer::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: rgba(14, 14, 14, 0.6);
 }
 .footer__inner {
   position: relative;
