@@ -311,15 +311,57 @@ body.intro-active { overflow: hidden; height: 100vh; }
   margin: 0 auto;
   padding: var(--spacing-114) var(--spacing-20);
 }
-.collection__grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
+/* Collection carousel — auto-advancing "shelf" of product cards, with
+   manual prev/next arrows. Track width per card matches the old grid's
+   column count (2 mobile / 4 desktop) so the visual density is unchanged. */
+.collection__carousel {
+  position: relative;
+}
+.collection__viewport {
+  overflow: hidden;
+  perspective: 1000px;
+}
+.collection__track {
+  display: flex;
   gap: var(--spacing-20);
+  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform;
+}
+.collection__track .product-card {
+  flex: 0 0 calc((100% - var(--spacing-20)) / 2);
 }
 @media (min-width: 768px) {
-  .collection__grid { grid-template-columns: repeat(4, 1fr); }
+  .collection__track .product-card {
+    flex: 0 0 calc((100% - 3 * var(--spacing-20)) / 4);
+  }
 }
-.collection__grid { perspective: 1000px; }
+@media (prefers-reduced-motion: reduce) {
+  .collection__track { transition: none; }
+}
+
+.carousel__arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  background: rgba(14, 14, 14, 0.5);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 9999px;
+  color: var(--color-linen);
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+.carousel__arrow:hover { background: rgba(44, 103, 61, 0.55); border-color: rgba(255, 255, 255, 0.4); }
+.carousel__arrow svg { width: 18px; height: 18px; }
+.carousel__arrow--prev { left: 8px; }
+.carousel__arrow--next { right: 8px; }
 
 .product-card {
   position: relative;

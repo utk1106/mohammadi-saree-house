@@ -114,3 +114,63 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!links.contains(e.target) && !toggle.contains(e.target)) closeMenu();
   });
 });
+
+// Collection carousel — auto-advances through the product shelf every few
+// seconds; prev/next arrows step manually and reset the autoplay timer.
+document.addEventListener('DOMContentLoaded', () => {
+  const carousel = document.querySelector('.collection__carousel');
+  const track = document.getElementById('collectionTrack');
+  const prevBtn = document.getElementById('collectionPrev');
+  const nextBtn = document.getElementById('collectionNext');
+  if (!carousel || !track || !prevBtn || !nextBtn) return;
+
+  const cards = Array.from(track.children);
+  const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const AUTOPLAY_MS = 4000;
+
+  let index = 0;
+  let visibleCount = window.matchMedia('(min-width: 768px)').matches ? 4 : 2;
+  let autoplayTimer = null;
+
+  const maxIndex = () => Math.max(cards.length - visibleCount, 0);
+
+  const render = () => {
+    const gap = parseFloat(getComputedStyle(track).gap) || 0;
+    const step = cards[0].getBoundingClientRect().width + gap;
+    track.style.transform = `translateX(-${index * step}px)`;
+  };
+
+  const goNext = () => {
+    index = index >= maxIndex() ? 0 : index + 1;
+    render();
+  };
+
+  const goPrev = () => {
+    index = index <= 0 ? maxIndex() : index - 1;
+    render();
+  };
+
+  const stopAutoplay = () => { clearInterval(autoplayTimer); autoplayTimer = null; };
+  const startAutoplay = () => {
+    if (prefersReducedMotion) return;
+    stopAutoplay();
+    autoplayTimer = setInterval(goNext, AUTOPLAY_MS);
+  };
+
+  nextBtn.addEventListener('click', () => { goNext(); startAutoplay(); });
+  prevBtn.addEventListener('click', () => { goPrev(); startAutoplay(); });
+
+  carousel.addEventListener('mouseenter', stopAutoplay);
+  carousel.addEventListener('mouseleave', startAutoplay);
+  carousel.addEventListener('focusin', stopAutoplay);
+  carousel.addEventListener('focusout', startAutoplay);
+
+  window.addEventListener('resize', () => {
+    visibleCount = window.matchMedia('(min-width: 768px)').matches ? 4 : 2;
+    index = Math.min(index, maxIndex());
+    render();
+  });
+
+  render();
+  startAutoplay();
+});
