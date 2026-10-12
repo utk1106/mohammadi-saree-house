@@ -127,9 +127,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const cards = Array.from(track.children);
   const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const AUTOPLAY_MS = 4000;
+  const VISIBLE_COUNT = 4; // same card count on mobile and desktop
 
   let index = 0;
-  let visibleCount = window.matchMedia('(min-width: 768px)').matches ? 4 : 2;
+  let visibleCount = VISIBLE_COUNT;
   let autoplayTimer = null;
 
   const maxIndex = () => Math.max(cards.length - visibleCount, 0);
@@ -166,11 +167,27 @@ document.addEventListener('DOMContentLoaded', () => {
   carousel.addEventListener('focusout', startAutoplay);
 
   window.addEventListener('resize', () => {
-    visibleCount = window.matchMedia('(min-width: 768px)').matches ? 4 : 2;
     index = Math.min(index, maxIndex());
     render();
   });
 
   render();
   startAutoplay();
+
+  // Shelf videos only play while their card is actually visible inside the
+  // carousel viewport — avoids every video decoding/playing at once off-screen.
+  const videos = track.querySelectorAll('video');
+  if (videos.length && 'IntersectionObserver' in window) {
+    const viewport = document.querySelector('.collection__viewport');
+    const videoObserver = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.play().catch(() => {});
+        } else {
+          entry.target.pause();
+        }
+      });
+    }, { root: viewport, threshold: 0.6 });
+    videos.forEach((video) => videoObserver.observe(video));
+  }
 });
