@@ -312,30 +312,29 @@ body.intro-active { overflow: hidden; height: 100vh; }
   padding: var(--spacing-114) var(--spacing-20);
 }
 /* Collection carousel — auto-advancing "shelf" of product cards, with
-   manual prev/next arrows. Shows 4 cards at a time on both mobile and
-   desktop; mobile uses a tighter gap so 4 narrow cards still fit. */
+   manual prev/next arrows. JS swaps which cards are in the track (rather
+   than sliding), so the track is just a grid: 2 columns x 3 rows (6 cards)
+   on mobile for a bigger per-card size, 4 across in a single row on desktop. */
 .collection__carousel {
   position: relative;
 }
 .collection__viewport {
-  overflow: hidden;
   perspective: 1000px;
 }
 .collection__track {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
   gap: var(--spacing-10);
-  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-  will-change: transform;
+  opacity: 1;
+  transition: opacity 0.25s ease;
 }
-.collection__track .product-card {
-  flex: 0 0 calc((100% - 3 * var(--spacing-10)) / 4);
+.collection__track.is-swapping {
+  opacity: 0;
 }
 @media (min-width: 768px) {
   .collection__track {
+    grid-template-columns: repeat(4, 1fr);
     gap: var(--spacing-20);
-  }
-  .collection__track .product-card {
-    flex: 0 0 calc((100% - 3 * var(--spacing-20)) / 4);
   }
 }
 @media (prefers-reduced-motion: reduce) {

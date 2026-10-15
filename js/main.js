@@ -117,6 +117,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Collection carousel — auto-advances through the product shelf every few
 // seconds; prev/next arrows step manually and reset the autoplay timer.
+// The track shows a window of the full card list, swapped in with a quick
+// fade rather than sliding (lets mobile show a 2x3 grid, desktop a 1x4 row).
 document.addEventListener('DOMContentLoaded', () => {
   const carousel = document.querySelector('.collection__carousel');
   const track = document.getElementById('collectionTrack');
@@ -124,21 +126,24 @@ document.addEventListener('DOMContentLoaded', () => {
   const nextBtn = document.getElementById('collectionNext');
   if (!carousel || !track || !prevBtn || !nextBtn) return;
 
-  const cards = Array.from(track.children);
+  const allCards = Array.from(track.children);
   const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const AUTOPLAY_MS = 4000;
-  const VISIBLE_COUNT = 4; // same card count on mobile and desktop
+  const SWAP_FADE_MS = 250;
+  const isDesktop = () => window.matchMedia('(min-width: 768px)').matches;
 
   let index = 0;
-  let visibleCount = VISIBLE_COUNT;
+  let visibleCount = isDesktop() ? 4 : 6;
   let autoplayTimer = null;
 
-  const maxIndex = () => Math.max(cards.length - visibleCount, 0);
+  const maxIndex = () => Math.max(allCards.length - visibleCount, 0);
 
   const render = () => {
-    const gap = parseFloat(getComputedStyle(track).gap) || 0;
-    const step = cards[0].getBoundingClientRect().width + gap;
-    track.style.transform = `translateX(-${index * step}px)`;
+    track.classList.add('is-swapping');
+    setTimeout(() => {
+      track.replaceChildren(...allCards.slice(index, index + visibleCount));
+      track.classList.remove('is-swapping');
+    }, prefersReducedMotion ? 0 : SWAP_FADE_MS);
   };
 
   const goNext = () => {
@@ -167,16 +172,19 @@ document.addEventListener('DOMContentLoaded', () => {
   carousel.addEventListener('focusout', startAutoplay);
 
   window.addEventListener('resize', () => {
+    const newVisibleCount = isDesktop() ? 4 : 6;
+    if (newVisibleCount === visibleCount) return;
+    visibleCount = newVisibleCount;
     index = Math.min(index, maxIndex());
     render();
   });
 
-  render();
+  track.replaceChildren(...allCards.slice(index, index + visibleCount));
   startAutoplay();
 
   // Shelf videos only play while their card is actually visible inside the
   // carousel viewport — avoids every video decoding/playing at once off-screen.
-  const videos = track.querySelectorAll('video');
+  const videos = allCards.map((card) => card.querySelector('video')).filter(Boolean);
   if (videos.length && 'IntersectionObserver' in window) {
     const viewport = document.querySelector('.collection__viewport');
     const videoObserver = new IntersectionObserver((entries) => {
