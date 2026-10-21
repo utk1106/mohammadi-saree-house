@@ -387,6 +387,12 @@ body.intro-active { overflow: hidden; height: 100vh; }
   transition: transform 0.4s ease;
   transform: translateZ(0);
 }
+.product-card img {
+  cursor: zoom-in;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
 .product-card:hover img,
 .product-card:hover video { transform: translateZ(24px) scale(1.04); }
 
@@ -438,6 +444,49 @@ body.intro-active { overflow: hidden; height: 100vh; }
 }
 .about__image { min-height: 420px; }
 .about__image img { width: 100%; height: 100%; object-fit: cover; object-position: top center; }
+
+/* Story (About Us page) */
+.story {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: calc(var(--spacing-114) + 60px) var(--spacing-20) var(--spacing-114);
+}
+.story__header { text-align: center; margin-bottom: var(--spacing-45); }
+.story__image { margin-bottom: var(--spacing-45); border-radius: var(--radius-cards); overflow: hidden; }
+.story__image img { width: 100%; max-height: 520px; object-fit: cover; }
+.story__body h3 {
+  font-family: var(--font-poppins);
+  font-weight: var(--font-weight-bold);
+  font-size: 22px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-brand-green-light);
+  margin: var(--spacing-45) 0 var(--spacing-20);
+}
+.story__body p { margin-bottom: var(--spacing-20); color: var(--color-raw-silk); }
+.story__body ul { margin: 0 0 var(--spacing-20); padding-left: 1.2em; }
+.story__body li { margin-bottom: var(--spacing-15); color: var(--color-raw-silk); }
+.story__cta { text-align: center; margin-top: var(--spacing-45); }
+
+/* Lightbox — full-size product photo on tap/click, closes on any tap */
+.lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-20);
+  background: rgba(0, 0, 0, 0.88);
+  cursor: zoom-out;
+}
+.lightbox[hidden] { display: none; }
+.lightbox__image {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  border-radius: var(--radius-cards);
+}
 .about__text p { margin-bottom: var(--spacing-23); color: var(--color-raw-silk); }
 
 /* Marquee — continuous scrolling brand-name band above the footer */

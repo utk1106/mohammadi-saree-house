@@ -1,0 +1,6 @@
+.git
+.vercel
+.wrangler
+wrangler.jsonc
+.gitignore
+.assetsignore

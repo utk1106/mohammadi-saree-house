@@ -128,7 +128,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const allCards = Array.from(track.children);
   const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const AUTOPLAY_MS = 4000;
+  const AUTOPLAY_MS = 6500;
   const SWAP_FADE_MS = 250;
   const isDesktop = () => window.matchMedia('(min-width: 768px)').matches;
 
@@ -198,4 +198,38 @@ document.addEventListener('DOMContentLoaded', () => {
     }, { root: viewport, threshold: 0.6 });
     videos.forEach((video) => videoObserver.observe(video));
   }
+});
+
+// Product photo lightbox — tap/click a product image to view it full-size.
+// Delegated on the document since the carousel swaps card nodes in and out.
+document.addEventListener('DOMContentLoaded', () => {
+  const lightbox = document.getElementById('lightbox');
+  const lightboxImage = document.getElementById('lightboxImage');
+  if (!lightbox || !lightboxImage) return;
+
+  const open = (img) => {
+    lightboxImage.src = img.currentSrc || img.src;
+    lightboxImage.alt = img.alt;
+    lightbox.hidden = false;
+  };
+  const close = () => {
+    lightbox.hidden = true;
+    lightboxImage.src = '';
+  };
+
+  document.addEventListener('click', (e) => {
+    if (!lightbox.hidden && lightbox.contains(e.target)) { close(); return; }
+    const img = e.target.closest('.product-card img');
+    if (img) open(img);
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !lightbox.hidden) close();
+  });
+
+  // Long-pressing a product photo should zoom it, not open the browser's
+  // native "save/share image" menu (Android Chrome triggers this on long-press).
+  document.addEventListener('contextmenu', (e) => {
+    if (e.target.closest('.product-card img')) e.preventDefault();
+  });
 });
