@@ -200,36 +200,55 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 });
 
-// Product photo lightbox — tap/click a product image to view it full-size.
-// Delegated on the document since the carousel swaps card nodes in and out.
+// Product media lightbox — tap/click a product photo or shelf video to view
+// it full-size. Delegated on the document since the carousel swaps card
+// nodes in and out.
 document.addEventListener('DOMContentLoaded', () => {
   const lightbox = document.getElementById('lightbox');
   const lightboxImage = document.getElementById('lightboxImage');
-  if (!lightbox || !lightboxImage) return;
+  const lightboxVideo = document.getElementById('lightboxVideo');
+  if (!lightbox || !lightboxImage || !lightboxVideo) return;
 
-  const open = (img) => {
+  const openImage = (img) => {
+    lightboxVideo.hidden = true;
+    lightboxVideo.pause();
+    lightboxVideo.removeAttribute('src');
+    lightboxImage.hidden = false;
     lightboxImage.src = img.currentSrc || img.src;
     lightboxImage.alt = img.alt;
     lightbox.hidden = false;
   };
+  const openVideo = (video) => {
+    lightboxImage.hidden = true;
+    lightboxImage.src = '';
+    lightboxVideo.hidden = false;
+    lightboxVideo.src = video.currentSrc || video.src;
+    lightboxVideo.muted = false;
+    lightbox.hidden = false;
+    lightboxVideo.play().catch(() => {});
+  };
   const close = () => {
     lightbox.hidden = true;
     lightboxImage.src = '';
+    lightboxVideo.pause();
+    lightboxVideo.removeAttribute('src');
   };
 
   document.addEventListener('click', (e) => {
-    if (!lightbox.hidden && lightbox.contains(e.target)) { close(); return; }
+    if (!lightbox.hidden && lightbox.contains(e.target) && e.target !== lightboxVideo) { close(); return; }
     const img = e.target.closest('.product-card img');
-    if (img) open(img);
+    if (img) { openImage(img); return; }
+    const video = e.target.closest('.product-card video');
+    if (video) openVideo(video);
   });
 
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && !lightbox.hidden) close();
   });
 
-  // Long-pressing a product photo should zoom it, not open the browser's
-  // native "save/share image" menu (Android Chrome triggers this on long-press).
+  // Long-pressing product media should zoom it, not open the browser's
+  // native "save/share" menu (Android Chrome triggers this on long-press).
   document.addEventListener('contextmenu', (e) => {
-    if (e.target.closest('.product-card img')) e.preventDefault();
+    if (e.target.closest('.product-card img, .product-card video')) e.preventDefault();
   });
 });
