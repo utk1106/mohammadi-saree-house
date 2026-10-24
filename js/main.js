@@ -198,6 +198,34 @@ document.addEventListener('DOMContentLoaded', () => {
     }, { root: viewport, threshold: 0.6 });
     videos.forEach((video) => videoObserver.observe(video));
   }
+
+  // Admin-uploaded photos (see admin.html) are fetched and spliced in ahead
+  // of the hardcoded cards above, so new uploads show up without a redeploy.
+  fetch('/api/products')
+    .then((res) => (res.ok ? res.json() : []))
+    .then((products) => {
+      if (!Array.isArray(products) || !products.length) return;
+      const newCards = products.map((p) => {
+        const figure = document.createElement('figure');
+        figure.className = 'product-card';
+        const img = document.createElement('img');
+        img.src = p.url;
+        img.loading = 'lazy';
+        img.alt = p.alt || 'Saree from Mohammadi Saree House';
+        const chip = document.createElement('a');
+        chip.className = 'product-card__chip';
+        chip.href = 'https://wa.me/96551525053';
+        chip.target = '_blank';
+        chip.rel = 'noopener';
+        chip.textContent = 'Enquire';
+        figure.append(img, chip);
+        return figure;
+      });
+      allCards.unshift(...newCards);
+      index = 0;
+      render();
+    })
+    .catch(() => {});
 });
 
 // Product media lightbox — tap/click a product photo or shelf video to view

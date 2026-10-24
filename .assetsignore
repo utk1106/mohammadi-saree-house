@@ -4,3 +4,5 @@
 wrangler.jsonc
 .gitignore
 .assetsignore
+worker.js
+.dev.vars

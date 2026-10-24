@@ -1,7 +1,15 @@
 {
   "name": "mohammadi-saree-house",
   "compatibility_date": "2026-10-12",
+  "main": "worker.js",
   "assets": {
-    "directory": "."
-  }
+    "directory": ".",
+    "binding": "ASSETS"
+  },
+  "r2_buckets": [
+    {
+      "binding": "PRODUCTS_BUCKET",
+      "bucket_name": "mohammadi-saree-house-uploads"
+    }
+  ]
 }
