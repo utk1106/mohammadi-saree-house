@@ -184,46 +184,47 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Shelf videos only play while their card is actually visible inside the
   // carousel viewport — avoids every video decoding/playing at once off-screen.
-  const videos = allCards.map((card) => card.querySelector('video')).filter(Boolean);
-  if (videos.length && 'IntersectionObserver' in window) {
-    const viewport = document.querySelector('.collection__viewport');
-    const videoObserver = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          entry.target.play().catch(() => {});
-        } else {
-          entry.target.pause();
-        }
-      });
-    }, { root: viewport, threshold: 0.6 });
-    videos.forEach((video) => videoObserver.observe(video));
-  }
+  // The observer stays around (not just a one-off forEach) so admin-replaced
+  // slots that turn into videos (see below) can be registered too.
+  const viewport = document.querySelector('.collection__viewport');
+  const videoObserver = 'IntersectionObserver' in window
+    ? new IntersectionObserver((entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) entry.target.play().catch(() => {});
+          else entry.target.pause();
+        });
+      }, { root: viewport, threshold: 0.6 })
+    : null;
+  allCards.forEach((card) => {
+    const video = card.querySelector('video');
+    if (video) videoObserver?.observe(video);
+  });
 
-  // Admin-uploaded photos (see admin.html) are fetched and spliced in ahead
-  // of the hardcoded cards above, so new uploads show up without a redeploy.
-  fetch('/api/products')
+  // Admin can replace any of the 20 fixed slots with a new photo or video
+  // (see admin.html) — this patches each replaced slot's existing card in
+  // place, so the card count and carousel never change, only the media.
+  fetch('/api/slots')
     .then((res) => (res.ok ? res.json() : []))
-    .then((products) => {
-      if (!Array.isArray(products) || !products.length) return;
-      const newCards = products.map((p) => {
-        const figure = document.createElement('figure');
-        figure.className = 'product-card';
-        const img = document.createElement('img');
-        img.src = p.url;
-        img.loading = 'lazy';
-        img.alt = p.alt || 'Saree from Mohammadi Saree House';
-        const chip = document.createElement('a');
-        chip.className = 'product-card__chip';
-        chip.href = 'https://wa.me/96551525053';
-        chip.target = '_blank';
-        chip.rel = 'noopener';
-        chip.textContent = 'Enquire';
-        figure.append(img, chip);
-        return figure;
+    .then((slots) => {
+      slots.filter((s) => s.isOverride).forEach((s) => {
+        const figure = allCards.find((card) => card.dataset.slot === String(s.slot));
+        if (!figure) return;
+        const oldMedia = figure.querySelector('img, video');
+        const media = document.createElement(s.type === 'video' ? 'video' : 'img');
+        if (s.type === 'video') {
+          media.src = s.url;
+          media.muted = true;
+          media.loop = true;
+          media.playsInline = true;
+          media.preload = 'metadata';
+          videoObserver?.observe(media);
+        } else {
+          media.src = s.url;
+          media.loading = 'lazy';
+          media.alt = s.alt || 'Saree from Mohammadi Saree House';
+        }
+        oldMedia.replaceWith(media);
       });
-      allCards.unshift(...newCards);
-      index = 0;
-      render();
     })
     .catch(() => {});
 });
