@@ -131,7 +131,7 @@
       try {
         const res = await fetch('/api/admin/replace', {
           method: 'POST',
-          headers: { Authorization: `Bearer ${passwordInput.value}` },
+          headers: { Authorization: `Bearer ${passwordInput.value.trim()}` },
           body,
         });
         const data = await res.json();
