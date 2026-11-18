@@ -6,3 +6,4 @@ wrangler.jsonc
 .assetsignore
 worker.js
 .dev.vars
+.impeccable
