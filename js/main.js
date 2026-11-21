@@ -207,11 +207,19 @@ document.addEventListener('DOMContentLoaded', () => {
     .then((res) => (res.ok ? res.json() : []))
     .then((slots) => {
       slots.filter((s) => s.isOverride).forEach((s) => {
+        if (s.type === 'stream' && !s.ready) return; // still processing — keep showing current content
         const figure = allCards.find((card) => card.dataset.slot === String(s.slot));
         if (!figure) return;
-        const oldMedia = figure.querySelector('img, video');
-        const media = document.createElement(s.type === 'video' ? 'video' : 'img');
-        if (s.type === 'video') {
+        const oldMedia = figure.querySelector('img, video, stream');
+        let media;
+        if (s.type === 'stream') {
+          media = document.createElement('stream');
+          media.setAttribute('src', s.uid);
+          media.muted = true;
+          media.loop = true;
+          videoObserver?.observe(media);
+        } else if (s.type === 'video') {
+          media = document.createElement('video');
           media.src = s.url;
           media.muted = true;
           media.loop = true;
@@ -219,6 +227,7 @@ document.addEventListener('DOMContentLoaded', () => {
           media.preload = 'metadata';
           videoObserver?.observe(media);
         } else {
+          media = document.createElement('img');
           media.src = s.url;
           media.loading = 'lazy';
           media.alt = s.alt || 'Saree from Mohammadi Saree House';

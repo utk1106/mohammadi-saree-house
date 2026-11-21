@@ -9,6 +9,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700&family=Raleway:wght@400;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/variables.css">
 <link rel="stylesheet" href="css/main.css">
+<script src="https://cdn.jsdelivr.net/npm/tus-js-client@4/dist/tus.min.js"></script>
+<script src="https://embed.cloudflarestream.com/embed/sdk.latest.js" defer></script>
 <style>
   .admin { max-width: 1000px; margin: 0 auto; padding: var(--spacing-75) var(--spacing-20); }
   .admin__card {
@@ -47,6 +49,16 @@
   .slot__status { margin-top: var(--spacing-9); font-size: 11px; color: var(--color-stone); }
   .slot__status.is-error { color: #e08a8a; }
   .slot__status.is-ok { color: var(--color-brand-green-light); }
+  .slot__media--processing {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: var(--spacing-10);
+    font-size: 11px;
+    color: var(--color-stone);
+  }
+  stream.slot__media { display: block; }
 </style>
 </head>
 <body>
@@ -71,6 +83,20 @@
   const passwordInput = document.getElementById('adminPassword');
 
   const slotMedia = (s) => {
+    if (s.type === 'stream') {
+      if (!s.ready) {
+        const placeholder = document.createElement('div');
+        placeholder.className = 'slot__media slot__media--processing';
+        placeholder.textContent = 'Video processing… refresh in a bit';
+        return placeholder;
+      }
+      const el = document.createElement('stream');
+      el.className = 'slot__media';
+      el.setAttribute('src', s.uid);
+      el.muted = true;
+      el.loop = true;
+      return el;
+    }
     const el = document.createElement(s.type === 'video' ? 'video' : 'img');
     el.className = 'slot__media';
     el.src = s.url;
@@ -92,7 +118,8 @@
 
     const label = document.createElement('div');
     label.className = 'slot__label';
-    label.textContent = `Slot ${s.slot} — ${s.type}${s.isOverride ? ' (replaced)' : ''}`;
+    const statusWord = s.type === 'stream' && s.isOverride && !s.ready ? ' (processing)' : s.isOverride ? ' (replaced)' : '';
+    label.textContent = `Slot ${s.slot} — ${s.type}${statusWord}`;
 
     const form = document.createElement('form');
     const fileInput = document.createElement('input');
@@ -120,6 +147,15 @@
       e.preventDefault();
       const file = fileInput.files[0];
       if (!file) return;
+      const password = passwordInput.value.trim();
+
+      if (file.type.startsWith('video/')) {
+        uploadVideoViaStream(file, s.slot, altInput.value, password, status, (data) => {
+          card.replaceWith(renderSlot({ ...data }));
+        });
+        return;
+      }
+
       status.textContent = 'Uploading…';
       status.className = 'slot__status';
 
@@ -131,7 +167,7 @@
       try {
         const res = await fetch('/api/admin/replace', {
           method: 'POST',
-          headers: { Authorization: `Bearer ${passwordInput.value.trim()}` },
+          headers: { Authorization: `Bearer ${password}` },
           body,
         });
         const data = await res.json();
@@ -147,6 +183,59 @@
 
     return card;
   };
+
+  // Large videos upload directly to Cloudflare Stream via the resumable tus
+  // protocol, bypassing this Worker's request size limit entirely — the
+  // Worker only provisions the one-time upload session (see
+  // /api/admin/stream/create), then the browser uploads straight to Stream.
+  function uploadVideoViaStream(file, slot, alt, password, status, onDone) {
+    status.textContent = 'Uploading… 0%';
+    status.className = 'slot__status';
+
+    let mediaId = null;
+    const upload = new tus.Upload(file, {
+      endpoint: `/api/admin/stream/create?pw=${encodeURIComponent(password)}`,
+      chunkSize: 50 * 1024 * 1024,
+      retryDelays: [0, 3000, 5000, 10000, 20000],
+      metadata: { name: file.name, filetype: file.type },
+      onError: (err) => {
+        status.textContent = err.message || 'Upload failed';
+        status.className = 'slot__status is-error';
+      },
+      onProgress: (bytesUploaded, bytesTotal) => {
+        status.textContent = `Uploading… ${((bytesUploaded / bytesTotal) * 100).toFixed(0)}%`;
+      },
+      onAfterResponse: (req, res) => new Promise((resolve) => {
+        const header = res.getHeader('stream-media-id');
+        if (header) mediaId = header;
+        resolve();
+      }),
+      onSuccess: async () => {
+        if (!mediaId) {
+          status.textContent = 'Upload finished but no video id was returned';
+          status.className = 'slot__status is-error';
+          return;
+        }
+        status.textContent = 'Processing…';
+        try {
+          const res = await fetch('/api/admin/stream/finalize', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${password}` },
+            body: JSON.stringify({ slot, uid: mediaId, alt }),
+          });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || 'Finalize failed');
+          status.textContent = 'Replaced! Video is processing and will appear once ready.';
+          status.className = 'slot__status is-ok';
+          onDone(data);
+        } catch (err) {
+          status.textContent = err.message;
+          status.className = 'slot__status is-error';
+        }
+      },
+    });
+    upload.start();
+  }
 
   fetch('/api/slots')
     .then((res) => res.json())

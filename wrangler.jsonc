@@ -11,5 +11,11 @@
       "binding": "PRODUCTS_BUCKET",
       "bucket_name": "mohammadi-saree-house-uploads"
     }
-  ]
+  ],
+  "stream": {
+    "binding": "STREAM"
+  },
+  "vars": {
+    "CF_ACCOUNT_ID": "308be6acee448f12ca1441419d867141"
+  }
 }
