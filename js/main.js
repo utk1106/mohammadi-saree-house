@@ -219,13 +219,15 @@ document.addEventListener('DOMContentLoaded', () => {
         if (s.type === 'stream') {
           media = document.createElement('iframe');
           media.className = 'stream-embed';
-          media.src = `${new URL(s.hlsPlaybackUrl).origin}/${s.uid}/iframe`;
+          // muted=true must be set on the URL itself, not via the player's
+          // JS property after load — setting it too late loses the race
+          // against the browser's autoplay policy and play() silently fails.
+          media.src = `${new URL(s.hlsPlaybackUrl).origin}/${s.uid}/iframe?muted=true`;
           media.setAttribute('allow', 'accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture');
           media.allowFullscreen = true;
           media.addEventListener('load', () => {
             if (!window.Stream) return;
             const player = window.Stream(media);
-            player.muted = true;
             player.loop = true;
             // The player's own loop property is unreliable in this embed —
             // it sometimes stalls at the end instead of restarting, so loop
