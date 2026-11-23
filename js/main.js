@@ -187,11 +187,15 @@ document.addEventListener('DOMContentLoaded', () => {
   // The observer stays around (not just a one-off forEach) so admin-replaced
   // slots that turn into videos (see below) can be registered too.
   const viewport = document.querySelector('.collection__viewport');
+  // Stream-hosted videos (see below) are iframes wrapped by Cloudflare's
+  // Stream() helper, which exposes its own play()/pause() on a player object
+  // rather than the iframe element itself — stashed as ._streamPlayer.
   const videoObserver = 'IntersectionObserver' in window
     ? new IntersectionObserver((entries) => {
         entries.forEach((entry) => {
-          if (entry.isIntersecting) entry.target.play().catch(() => {});
-          else entry.target.pause();
+          const target = entry.target._streamPlayer || entry.target;
+          if (entry.isIntersecting) target.play().catch(() => {});
+          else target.pause();
         });
       }, { root: viewport, threshold: 0.6 })
     : null;
@@ -210,14 +214,22 @@ document.addEventListener('DOMContentLoaded', () => {
         if (s.type === 'stream' && !s.ready) return; // still processing — keep showing current content
         const figure = allCards.find((card) => card.dataset.slot === String(s.slot));
         if (!figure) return;
-        const oldMedia = figure.querySelector('img, video, stream');
+        const oldMedia = figure.querySelector('img, video, iframe.stream-embed');
         let media;
         if (s.type === 'stream') {
-          media = document.createElement('stream');
-          media.setAttribute('src', s.uid);
-          media.muted = true;
-          media.loop = true;
-          videoObserver?.observe(media);
+          media = document.createElement('iframe');
+          media.className = 'stream-embed';
+          media.src = `${new URL(s.hlsPlaybackUrl).origin}/${s.uid}/iframe`;
+          media.setAttribute('allow', 'accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture');
+          media.allowFullscreen = true;
+          media.addEventListener('load', () => {
+            if (!window.Stream) return;
+            const player = window.Stream(media);
+            player.muted = true;
+            player.loop = true;
+            media._streamPlayer = player;
+            videoObserver?.observe(media);
+          }, { once: true });
         } else if (s.type === 'video') {
           media = document.createElement('video');
           media.src = s.url;

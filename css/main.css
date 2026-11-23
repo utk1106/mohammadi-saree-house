@@ -380,10 +380,11 @@ body.intro-active { overflow: hidden; height: 100vh; }
 .product-card:hover { box-shadow: 0 20px 40px rgba(44, 103, 61, 0.35); }
 .product-card img,
 .product-card video,
-.product-card stream {
+.product-card iframe.stream-embed {
   display: block;
   width: 100%;
   height: 100%;
+  border: none;
   object-fit: cover;
   object-position: top;
   transition: transform 0.4s ease;
@@ -397,7 +398,7 @@ body.intro-active { overflow: hidden; height: 100vh; }
 }
 .product-card:hover img,
 .product-card:hover video,
-.product-card:hover stream { transform: translateZ(24px) scale(1.04); }
+.product-card:hover iframe.stream-embed { transform: translateZ(24px) scale(1.04); }
 
 .product-card__chip {
   position: absolute;

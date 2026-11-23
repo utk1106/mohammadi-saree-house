@@ -58,7 +58,7 @@
     font-size: 11px;
     color: var(--color-stone);
   }
-  stream.slot__media { display: block; }
+  iframe.slot__media { display: block; border: none; }
 </style>
 </head>
 <body>
@@ -90,11 +90,11 @@
         placeholder.textContent = 'Video processing… refresh in a bit';
         return placeholder;
       }
-      const el = document.createElement('stream');
-      el.className = 'slot__media';
-      el.setAttribute('src', s.uid);
-      el.muted = true;
-      el.loop = true;
+      const el = document.createElement('iframe');
+      el.className = 'slot__media stream-embed';
+      el.src = `${new URL(s.hlsPlaybackUrl).origin}/${s.uid}/iframe`;
+      el.setAttribute('allow', 'accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture');
+      el.allowFullscreen = true;
       return el;
     }
     const el = document.createElement(s.type === 'video' ? 'video' : 'img');
