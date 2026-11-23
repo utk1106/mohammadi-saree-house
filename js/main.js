@@ -128,7 +128,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const allCards = Array.from(track.children);
   const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const AUTOPLAY_MS = 6500;
+  const AUTOPLAY_MS = 20000;
   const SWAP_FADE_MS = 250;
   const isDesktop = () => window.matchMedia('(min-width: 768px)').matches;
 
@@ -146,13 +146,15 @@ document.addEventListener('DOMContentLoaded', () => {
     }, prefersReducedMotion ? 0 : SWAP_FADE_MS);
   };
 
+  // Steps by a full rack (visibleCount cards) rather than one card at a
+  // time, so next/prev swap the whole set of photos in one go.
   const goNext = () => {
-    index = index >= maxIndex() ? 0 : index + 1;
+    index = index >= maxIndex() ? 0 : Math.min(index + visibleCount, maxIndex());
     render();
   };
 
   const goPrev = () => {
-    index = index <= 0 ? maxIndex() : index - 1;
+    index = index <= 0 ? maxIndex() : Math.max(index - visibleCount, 0);
     render();
   };
 
