@@ -227,6 +227,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const player = window.Stream(media);
             player.muted = true;
             player.loop = true;
+            // The player's own loop property is unreliable in this embed —
+            // it sometimes stalls at the end instead of restarting, so loop
+            // manually as a fallback.
+            player.addEventListener('ended', () => player.play().catch(() => {}));
             media._streamPlayer = player;
             videoObserver?.observe(media);
           }, { once: true });
