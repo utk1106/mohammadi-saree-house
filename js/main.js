@@ -233,6 +233,15 @@ document.addEventListener('DOMContentLoaded', () => {
             // it sometimes stalls at the end instead of restarting, so loop
             // manually as a fallback.
             player.addEventListener('ended', () => player.play().catch(() => {}));
+            // It can also silently stall mid-playback (currentTime stops
+            // advancing, paused still reports false, 'ended' never fires) —
+            // nudge it back to life if that happens while still on screen.
+            let lastTime = -1;
+            const watchdog = setInterval(() => {
+              if (!media.isConnected) { clearInterval(watchdog); return; }
+              if (!player.paused && player.currentTime === lastTime) player.play().catch(() => {});
+              lastTime = player.currentTime;
+            }, 4000);
             media._streamPlayer = player;
             videoObserver?.observe(media);
           }, { once: true });
